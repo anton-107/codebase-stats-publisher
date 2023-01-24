@@ -1,4 +1,6 @@
 async function main() {
+  const {GitRepository} = await import('codebase-stats-collector/dist/git-reader/git-repository.js');
+
   const gitRepo = process.env.SOURCE_DIR;
   const notesEndpoint = process.env.NOTES_API_ENDPOINT;
   const notesUser = process.env.NOTES_USER;
@@ -17,7 +19,12 @@ async function main() {
   }
   console.log(`Collecting data from git repo: ${gitRepo}`);
 
-  // TODO: collect data
+  // read data from git:
+  const repo = new GitRepository(gitRepo);
+  const commits = await repo.getListOfCommits();
+  const commitsWithChangedFiles = await repo.getListOfCommitsWithChangedFiles();
+  
+  console.log('commits', commits);
 
   console.log(`Publishing collected data to: ${notesEndpoint} as user ${notesUser}`);
 }

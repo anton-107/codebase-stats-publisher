@@ -4,7 +4,7 @@
   "description": "Module to publish a codebase collected by codebase-stats-collector module into notes-webserver.",
   "main": "index.js",
   "scripts": {
-    "publish-data": "ts-node src/index"
+    "publish-data": "ts-node --esm src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -16,6 +16,9 @@
     "url": "https://github.com/anton-107/codebase-stats-publisher/issues"
   },
   "homepage": "https://github.com/anton-107/codebase-stats-publisher#readme",
+  "dependencies": {
+    "codebase-stats-collector": "anton-107/codebase-stats-collector"
+  },
   "devDependencies": {
     "ts-node": "^10.9.1"
   }
