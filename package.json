@@ -1,0 +1,22 @@
+{
+  "name": "codebase-stats-publisher",
+  "version": "1.0.0",
+  "description": "Module to publish a codebase collected by codebase-stats-collector module into notes-webserver.",
+  "main": "index.js",
+  "scripts": {
+    "publish-data": "ts-node src/index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anton-107/codebase-stats-publisher.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anton-107/codebase-stats-publisher/issues"
+  },
+  "homepage": "https://github.com/anton-107/codebase-stats-publisher#readme",
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
