@@ -1,5 +1,6 @@
 async function main() {
   const {GitRepository} = await import('codebase-stats-collector/dist/git-reader/git-repository.js');
+  const {getNumberOfChangesPerFile} = await import('codebase-stats-collector/dist/stats/number-of-changes-per-file.js');
 
   const gitRepo = process.env.SOURCE_DIR;
   const notesEndpoint = process.env.NOTES_API_ENDPOINT;
@@ -24,8 +25,11 @@ async function main() {
   const commits = await repo.getListOfCommits();
   const commitsWithChangedFiles = await repo.getListOfCommitsWithChangedFiles();
   
-  console.log('commits', commits);
+  // analyze stats:
+  const numberOfChangesPerFile = await getNumberOfChangesPerFile(commitsWithChangedFiles);
+  console.log('numberOfChangesPerFile', numberOfChangesPerFile);
 
+  // publish data:
   console.log(`Publishing collected data to: ${notesEndpoint} as user ${notesUser}`);
 }
 main();
