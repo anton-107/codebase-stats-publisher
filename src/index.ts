@@ -1,7 +1,13 @@
+import {access} from 'fs';
+import { promisify } from 'util';
+
+const checkFileExists = promisify(access);
+
 async function main() {
   const {GitRepository} = await import('codebase-stats-collector/dist/git-reader/git-repository.js');
   const {getNumberOfChangesPerFile} = await import('codebase-stats-collector/dist/stats/number-of-changes-per-file.js');
   const {getNumberOfLines} = await import('codebase-stats-collector/dist/stats/number-of-lines.js');
+  const {getNumberOfContributorsPerFile} = await import('codebase-stats-collector/dist/stats/number-of-contributors-per-file.js');
 
   const gitRepo = process.env.SOURCE_DIR;
   const notesEndpoint = process.env.NOTES_API_ENDPOINT;
@@ -28,12 +34,23 @@ async function main() {
   
   // analyze stats:
   const numberOfChangesPerFile = await getNumberOfChangesPerFile(commitsWithChangedFiles);
+  const numberOfContributorsPerFile = await getNumberOfContributorsPerFile(commitsWithChangedFiles);
   const filePaths = Object.keys(numberOfChangesPerFile);
   for (let filePath of filePaths) {
     const fullPath = `${gitRepo}/${filePath}`;
-    const numberOfLines = await getNumberOfLines(fullPath);
+
+    
+    
+    let numberOfLines = null;
+    try {
+      await checkFileExists(fullPath);
+      numberOfLines = await getNumberOfLines(fullPath);
+    } catch {
+      console.log('file does not exist:', fullPath) 
+    }
     const numberOfChanges = numberOfChangesPerFile[filePath];
-    console.log(filePath, numberOfChanges, numberOfLines);
+    const numberOfContributors = numberOfContributorsPerFile[filePath];
+    console.log(filePath, numberOfLines, numberOfChanges, numberOfContributors);
   }
 
   // publish data:
