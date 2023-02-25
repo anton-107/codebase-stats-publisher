@@ -77,11 +77,25 @@ async function main() {
   if (notebookResponse.httpCode !== 200) {
     throw Error(`Could not create notebook: ${notebookResponse.httpCode} - ${notebookResponse.body}`);
   }
+
+  const publishBatchSize = 10;
   let i = 0;
+  let notes = [];
   for (let file of files) {
-    const noteResponse = await client.createNote(notebookResponse.body.id, JSON.stringify(file));
+    notes.push({
+      id: '',
+      notebookID: notebookResponse.body.id,
+      content: JSON.stringify(file)
+    });
+    if (notes.length < publishBatchSize) {
+      console.log(`Collected note data on ${file.filePath} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${files.length} processed`);
+      continue;
+    }
+
+    const noteResponse = await client.createNotes(notes);
+    notes = [];
     i += 1;
-    console.log(`Response from note creation ${file.filePath}: ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`);
+    console.log(`Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`);
   }
 }
 main();
