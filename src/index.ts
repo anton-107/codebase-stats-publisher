@@ -37,11 +37,12 @@ async function main() {
 
   // read data from git:
   const repo = new GitRepository(gitRepo);
-  const commits = await repo.getListOfCommits();
   const commitsWithChangedFiles = await repo.getListOfCommitsWithChangedFiles();
   
   // analyze stats:
-  const numberOfChangesPerFile = await getNumberOfChangesPerFile(commitsWithChangedFiles);
+  const numberOfChangesPerFile = await getNumberOfChangesPerFile(commitsWithChangedFiles, {
+    fileIgnorePattern: `^/dist/`
+  });
   const numberOfContributorsPerFile = await getNumberOfContributorsPerFile(commitsWithChangedFiles);
   const filePaths = Object.keys(numberOfChangesPerFile);
 
@@ -82,6 +83,7 @@ async function main() {
   let i = 0;
   let notes = [];
   for (let file of files) {
+    i += 1;
     notes.push({
       id: '',
       notebookID: notebookResponse.body.id,
@@ -94,8 +96,11 @@ async function main() {
 
     const noteResponse = await client.createNotes(notes);
     notes = [];
-    i += 1;
     console.log(`Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`);
   }
+  // publish last batch:
+  const noteResponse = await client.createNotes(notes);
+  notes = [];
+  console.log(`Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`);
 }
 main();
