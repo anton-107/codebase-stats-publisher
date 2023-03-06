@@ -31,7 +31,7 @@ async function main() {
     throw Error(`Could not authorize Notes API client. Check that you are using correct login/password pair`);
   }
   console.log('Client is authorized');
-  const notebookResponse = await client.createNotebook(`Git repo (test)`);
+  const notebookResponse = await client.createNotebook(`Git repo (test v2)`);
   if (notebookResponse.httpCode !== 200) {
     throw Error(`Could not create notebook: ${notebookResponse.httpCode} - ${notebookResponse.body}`);
   }
@@ -43,8 +43,12 @@ async function main() {
     i += 1;
     notes.push({
       id: '',
+      'note-type': 'source-file',
       notebookID: notebookResponse.body.id,
-      content: JSON.stringify(file)
+      content: file.filePath,
+      'number-of-lines': String(file.numberOfLines),
+      'number-of-changes': String(file.numberOfChanges),
+      'number-of-contributors': String(file.numberOfContributors)
     });
     if (notes.length < publishBatchSize) {
       console.log(`Collected note data on ${file.filePath} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${files.length} processed`);
