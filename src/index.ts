@@ -1,7 +1,15 @@
 import {APIClient} from "notes-webserver-apiclient/dist/api-client.js";
-import { collectDataFromGitRepo } from "./collect-data.js";
 
-async function main() {
+import { collectDataFromGitRepo, File } from "./collect-data.js";
+
+interface PublisherConfiguration {
+  gitRepo: string;
+  notesEndpoint: string;
+  notesUser: string;
+  notesPassword: string;
+}
+
+function configureFromEnvironment(): PublisherConfiguration {
   const gitRepo = process.env.SOURCE_DIR;
   const notesEndpoint = process.env.API_ROOT;
   const notesUser = process.env.NOTES_USER;
@@ -18,6 +26,34 @@ async function main() {
   if (!notesPassword) {
     throw Error('Please define NOTES_PASSWORD to specify the Notes user password');
   }
+  return {
+    gitRepo,
+    notesEndpoint,
+    notesUser,
+    notesPassword
+  };
+}
+
+function buildNote(notebookID: string, file: File) {
+  return {
+    id: '',
+    'note-type': 'source-file',
+    notebookID,
+    content: file.filePath,
+    'number-of-lines': String(file.numberOfLines),
+    'number-of-changes': String(file.numberOfChanges),
+    'number-of-contributors': String(file.numberOfContributors)
+  };
+}
+
+async function main() {
+  const {
+    gitRepo,
+    notesEndpoint,
+    notesUser,
+    notesPassword
+  } = configureFromEnvironment();
+
   console.log(`Collecting data from git repo: ${gitRepo}`);
 
   const files = await collectDataFromGitRepo(gitRepo);
@@ -39,17 +75,9 @@ async function main() {
   const publishBatchSize = 10;
   let i = 0;
   let notes = [];
-  for (let file of files) {
+  for (const file of files) {
     i += 1;
-    notes.push({
-      id: '',
-      'note-type': 'source-file',
-      notebookID: notebookResponse.body.id,
-      content: file.filePath,
-      'number-of-lines': String(file.numberOfLines),
-      'number-of-changes': String(file.numberOfChanges),
-      'number-of-contributors': String(file.numberOfContributors)
-    });
+    notes.push(buildNote(notebookResponse.body.id, file));
     if (notes.length < publishBatchSize) {
       console.log(`Collected note data on ${file.filePath} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${files.length} processed`);
       continue;

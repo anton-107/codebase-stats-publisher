@@ -5,6 +5,8 @@
   "description": "Module to publish a codebase collected by codebase-stats-collector module into notes-webserver.",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --ext .ts",
+    "fix-lint": "eslint . --ext .ts --fix",
     "publish-data": "ts-node --esm src/index.ts"
   },
   "repository": {
@@ -22,6 +24,10 @@
     "notes-webserver-apiclient": "anton-107/notes-webserver-apiclient"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "eslint": "^8.16.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-simple-import-sort": "^8.0.0",
     "ts-node": "^10.9.1"
   }
 }
