@@ -7,6 +7,11 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "fix-lint": "eslint . --ext .ts --fix",
+    "fix-format": "prettier --write .",
+    "fix": "npm run fix-format && npm run fix-lint",
+    "check-format": "prettier --check .",
+    "check-dependencies": "depcruise --config .dependency-cruiser.cjs src",
+    "check-duplications": "jscpd --pattern 'src/**/*.ts' -l 12 --exitCode 1",
     "publish-data": "ts-node --esm src/index.ts"
   },
   "repository": {
@@ -25,9 +30,12 @@
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "dependency-cruiser": "^12.10.0",
     "eslint": "^8.16.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-simple-import-sort": "^8.0.0",
+    "jscpd": "^3.5.3",
+    "prettier": "^2.8.4",
     "ts-node": "^10.9.1"
   }
 }

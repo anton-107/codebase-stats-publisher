@@ -15,4 +15,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm ci
       - run: npm run lint
+      - run: npm run check-format
+      - run: npm run check-dependencies
+      - run: npm run check-duplications
       - run: npm run build
