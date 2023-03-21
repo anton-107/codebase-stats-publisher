@@ -54,6 +54,11 @@ function buildNote(notebookID: string, file: File) {
   };
 }
 
+function getProjectName(gitRepo: string): string {
+  const gitRepoParts = gitRepo.split("/");
+  return gitRepoParts[gitRepoParts.length - 1];
+}
+
 async function main() {
   const { gitRepo, notesEndpoint, notesUser, notesPassword } =
     configureFromEnvironment();
@@ -75,7 +80,9 @@ async function main() {
     );
   }
   console.log("Client is authorized");
-  const notebookResponse = await client.createNotebook(`Git repo (test v2)`);
+  const notebookResponse = await client.createNotebook(
+    `${getProjectName(gitRepo)} (gitRepo)`
+  );
   if (notebookResponse.httpCode !== 200) {
     throw Error(
       `Could not create notebook: ${notebookResponse.httpCode} - ${notebookResponse.body}`
