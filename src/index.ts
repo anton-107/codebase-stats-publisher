@@ -50,7 +50,7 @@ function buildNote(notebookID: string, file: File) {
     content: file.filePath,
     "number-of-lines": String(file.numberOfLines),
     "number-of-changes": String(file.numberOfChanges),
-    "number-of-contributors": String(file.numberOfContributors),
+    "number-of-contributors": JSON.stringify(file.contributors),
   };
 }
 
