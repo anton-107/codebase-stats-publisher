@@ -1,6 +1,8 @@
-import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
+import { APIClient, Note } from "notes-webserver-apiclient/dist/api-client.js";
 
-import { collectDataFromGitRepo, File } from "./collect-data.js";
+import { collectDataFromGitRepo } from "./collect-data.js";
+import { getOrCreateNotebook } from "./get-or-create-notebook.js";
+import { createFilesInNotebook } from "./publish-files-to-notebook.js";
 
 interface PublisherConfiguration {
   gitRepo: string;
@@ -42,37 +44,23 @@ function configureFromEnvironment(): PublisherConfiguration {
   };
 }
 
-function buildNote(notebookID: string, file: File) {
-  return {
-    id: "",
-    "note-type": "source-file",
-    notebookID,
-    content: file.filePath,
-    "number-of-lines": String(file.numberOfLines),
-    "number-of-changes": String(file.numberOfChanges),
-    "number-of-contributors": String(
-      file.contributors ? file.contributors.length : 0
-    ),
-    contributors: JSON.stringify(file.contributors),
-  };
-}
-
 function getProjectName(gitRepo: string): string {
   const gitRepoParts = gitRepo.split("/");
   return gitRepoParts[gitRepoParts.length - 1];
 }
 
 async function main() {
+  // configure:
   const { gitRepo, notesEndpoint, notesUser, notesPassword } =
     configureFromEnvironment();
 
+  // collect data from git:
   console.log(`Collecting data from git repo: ${gitRepo}`);
-
   const files = await collectDataFromGitRepo(gitRepo);
 
-  // publish data:
+  // authorize client
   console.log(
-    `Publishing collected data to: ${notesEndpoint} as user ${notesUser}`
+    `Authorizing client against ${notesEndpoint} as user ${notesUser}`
   );
 
   const client = new APIClient();
@@ -82,40 +70,30 @@ async function main() {
       `Could not authorize Notes API client. Check that you are using correct login/password pair`
     );
   }
-  console.log("Client is authorized");
-  const notebookResponse = await client.createNotebook(
-    `${getProjectName(gitRepo)} (gitRepo, v4)`
-  );
-  if (notebookResponse.httpCode !== 200) {
-    throw Error(
-      `Could not create notebook: ${notebookResponse.httpCode} - ${notebookResponse.body}`
-    );
+
+  // get or create notebook:
+  const notebookName = `${getProjectName(gitRepo)} (gitRepo, v5)`;
+  const notebook = await getOrCreateNotebook(client, notebookName);
+
+  // list existing notes in that notebook
+  const resp = await client.listNotes(notebook.id);
+  if (resp.httpCode !== 200) {
+    throw Error(`Could not list existing items in notebook ${resp}`);
+  }
+  const existingItems: Note[] = resp.body;
+
+  if (existingItems.length === 0) {
+    console.log("publishing all files to an empty notebook");
+    await createFilesInNotebook({
+      client,
+      files,
+      notebook,
+    });
+    return;
   }
 
-  const publishBatchSize = 3;
-  let i = 0;
-  let notes = [];
-  for (const file of files) {
-    i += 1;
-    notes.push(buildNote(notebookResponse.body.id, file));
-    if (notes.length < publishBatchSize) {
-      console.log(
-        `Collected note data on ${file.filePath} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${files.length} processed`
-      );
-      continue;
-    }
-
-    const noteResponse = await client.createNotes(notes);
-    notes = [];
-    console.log(
-      `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`
-    );
-  }
-  // publish last batch:
-  const noteResponse = await client.createNotes(notes);
-  notes = [];
   console.log(
-    `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${files.length} complete`
+    "publishing only new / updated items to an existing notebook (not implemented yet)"
   );
 }
 main();
