@@ -50,7 +50,10 @@ function buildNote(notebookID: string, file: File) {
     content: file.filePath,
     "number-of-lines": String(file.numberOfLines),
     "number-of-changes": String(file.numberOfChanges),
-    "number-of-contributors": JSON.stringify(file.contributors),
+    "number-of-contributors": String(
+      file.contributors ? file.contributors.length : 0
+    ),
+    contributors: JSON.stringify(file.contributors),
   };
 }
 
@@ -81,7 +84,7 @@ async function main() {
   }
   console.log("Client is authorized");
   const notebookResponse = await client.createNotebook(
-    `${getProjectName(gitRepo)} (gitRepo)`
+    `${getProjectName(gitRepo)} (gitRepo, v4)`
   );
   if (notebookResponse.httpCode !== 200) {
     throw Error(
@@ -89,7 +92,7 @@ async function main() {
     );
   }
 
-  const publishBatchSize = 10;
+  const publishBatchSize = 3;
   let i = 0;
   let notes = [];
   for (const file of files) {
