@@ -2,7 +2,10 @@ import { APIClient, Note } from "notes-webserver-apiclient/dist/api-client.js";
 
 import { collectDataFromGitRepo } from "./collect-data.js";
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
-import { createFilesInNotebook } from "./publish-files-to-notebook.js";
+import {
+  createFilesInNotebook,
+  updateFilesInNotebook,
+} from "./publish-files-to-notebook.js";
 
 interface PublisherConfiguration {
   gitRepo: string;
@@ -92,8 +95,12 @@ async function main() {
     return;
   }
 
-  console.log(
-    "publishing only new / updated items to an existing notebook (not implemented yet)"
-  );
+  console.log("publishing only new / updated items to an existing notebook");
+  await updateFilesInNotebook({
+    client,
+    notebookID: notebook.id,
+    existingNotes: existingItems,
+    files,
+  });
 }
 main();

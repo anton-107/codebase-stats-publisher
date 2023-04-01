@@ -1,16 +1,57 @@
 import {
   APIClient,
+  Note,
   Notebook,
+  NoteForm,
 } from "notes-webserver-apiclient/dist/api-client.js";
 
 import { File } from "./collect-data.js";
+import { arraysHaveSameContent } from "./compare-objects.js";
 
-function buildNote(notebookID: string, file: File) {
+function areEqual(note: Note, file: File): boolean {
+  if (
+    String(note.extensionProperties.numberOfLines) !==
+    String(file.numberOfLines)
+  ) {
+    return false;
+  }
+  if (
+    String(note.extensionProperties.numberOfChanges) !==
+    String(file.numberOfChanges)
+  ) {
+    return false;
+  }
+  if (
+    String(note.extensionProperties.numberOfContributors) !==
+    String(file.contributors?.length)
+  ) {
+    return false;
+  }
+  if (
+    !arraysHaveSameContent(
+      note.extensionProperties.contributors as unknown as Record<
+        string,
+        unknown
+      >[],
+      file.contributors as unknown as Record<string, unknown>[]
+    )
+  ) {
+    console.log(
+      "arrays do not have the same content: ",
+      note.extensionProperties.contributors,
+      file.contributors
+    );
+    return false;
+  }
+  return true;
+}
+
+function buildNote(notebookID: string, file: File): NoteForm {
   return {
     id: "",
     "note-type": "source-file",
-    notebookID,
-    content: file.filePath,
+    "notebook-id": notebookID,
+    "note-content": file.filePath,
     "number-of-lines": String(file.numberOfLines),
     "number-of-changes": String(file.numberOfChanges),
     "number-of-contributors": String(
@@ -20,14 +61,14 @@ function buildNote(notebookID: string, file: File) {
   };
 }
 
-interface PublishFilesToNotebookProperties {
+interface CreateFilesInNotebookProperties {
   client: APIClient;
   files: File[];
   notebook: Notebook;
 }
 
 export async function createFilesInNotebook(
-  props: PublishFilesToNotebookProperties
+  props: CreateFilesInNotebookProperties
 ): Promise<void> {
   // publish data:
   const publishBatchSize = 3;
@@ -55,4 +96,50 @@ export async function createFilesInNotebook(
   console.log(
     `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${props.files.length} complete`
   );
+}
+
+interface UpdateFilesInNotebookProperties {
+  client: APIClient;
+  notebookID: string;
+  existingNotes: Note[];
+  files: File[];
+}
+
+export async function updateFilesInNotebook(
+  props: UpdateFilesInNotebookProperties
+): Promise<void> {
+  // Find items that need to be updated
+  const itemsToCreate: NoteForm[] = [];
+  const itemsToUpdate: NoteForm[] = [];
+  props.files.forEach((file) => {
+    const existingNote = props.existingNotes.find(
+      (note) => file.filePath === note.content
+    );
+    if (!existingNote) {
+      itemsToCreate.push(buildNote(props.notebookID, file));
+      return;
+    }
+    if (!areEqual(existingNote, file)) {
+      const noteToUpdate = buildNote(props.notebookID, file);
+      noteToUpdate.id = existingNote.id;
+      itemsToUpdate.push(noteToUpdate);
+      return;
+    }
+  });
+
+  console.log("Found the following items to create:", itemsToCreate.length);
+  for (const item of itemsToCreate) {
+    console.log("Item creation attempt: ", item);
+    const resp = await props.client.createNote(
+      item["notebook-id"],
+      item["note-content"],
+      item
+    );
+    console.log("Item creation status code: ", resp.httpCode, resp.body);
+  }
+
+  console.log("Found the following items to update (not implemented yet):", itemsToUpdate.length);
+  itemsToUpdate.forEach((item) => {
+    console.log("will update:", item);
+  });
 }
