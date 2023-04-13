@@ -1,7 +1,7 @@
+import { Note } from "notes-model/dist/note-model.js";
+import { Notebook } from "notes-model/dist/notebook-model.js";
 import {
   APIClient,
-  Note,
-  Notebook,
   NoteForm,
 } from "notes-webserver-apiclient/dist/api-client.js";
 
@@ -121,7 +121,7 @@ export async function updateFilesInNotebook(
     }
     if (!areEqual(existingNote, file)) {
       const noteToUpdate = buildNote(props.notebookID, file);
-      noteToUpdate.id = existingNote.id;
+      noteToUpdate['note-id'] = existingNote.id;
       itemsToUpdate.push(noteToUpdate);
       return;
     }
@@ -138,8 +138,13 @@ export async function updateFilesInNotebook(
     console.log("Item creation status code: ", resp.httpCode, resp.body);
   }
 
-  console.log("Found the following items to update (not implemented yet):", itemsToUpdate.length);
-  itemsToUpdate.forEach((item) => {
-    console.log("will update:", item);
-  });
+  console.log("Found the following items to update:", itemsToUpdate.length);
+  for (const item of itemsToUpdate) {
+    console.log("Item update attempt: ", item);
+    const resp = await props.client.updateNote(
+      item["note-id"],
+      item
+    );
+    console.log("Item update status code: ", resp.httpCode, resp.body);
+  }
 }

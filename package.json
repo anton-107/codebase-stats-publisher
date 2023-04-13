@@ -26,6 +26,7 @@
   "homepage": "https://github.com/anton-107/codebase-stats-publisher#readme",
   "dependencies": {
     "codebase-stats-collector": "anton-107/codebase-stats-collector",
+    "notes-model": "github:anton-107/notes-model",
     "notes-webserver-apiclient": "anton-107/notes-webserver-apiclient"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
-import { APIClient, Note } from "notes-webserver-apiclient/dist/api-client.js";
+import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
+import { Note } from "notes-model/dist/note-model.js";
 
 import { collectDataFromGitRepo } from "./collect-data.js";
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
@@ -75,7 +76,7 @@ async function main() {
   }
 
   // get or create notebook:
-  const notebookName = `${getProjectName(gitRepo)} (gitRepo, v5)`;
+  const notebookName = `${getProjectName(gitRepo)} (gitRepo, v6)`;
   const notebook = await getOrCreateNotebook(client, notebookName);
 
   // list existing notes in that notebook
