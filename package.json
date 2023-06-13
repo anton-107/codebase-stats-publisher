@@ -12,7 +12,8 @@
     "check-format": "prettier --check .",
     "check-dependencies": "depcruise --config .dependency-cruiser.cjs src",
     "check-duplications": "jscpd --pattern 'src/**/*.ts' -l 12 --exitCode 1",
-    "publish-data": "ts-node --esm src/index.ts"
+    "publish-data": "ts-node --esm src/index.ts",
+    "collect-multiple": "ts-node --esm src/collect-multiple.ts"
   },
   "repository": {
     "type": "git",

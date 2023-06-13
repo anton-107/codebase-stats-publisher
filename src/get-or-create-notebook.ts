@@ -1,7 +1,5 @@
 import { Notebook } from "notes-model/dist/notebook-model.js";
-import {
-  APIClient
-} from "notes-webserver-apiclient/dist/api-client.js";
+import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
 
 export async function getOrCreateNotebook(
   client: APIClient,

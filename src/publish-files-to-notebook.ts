@@ -121,7 +121,7 @@ export async function updateFilesInNotebook(
     }
     if (!areEqual(existingNote, file)) {
       const noteToUpdate = buildNote(props.notebookID, file);
-      noteToUpdate['note-id'] = existingNote.id;
+      noteToUpdate["note-id"] = existingNote.id;
       itemsToUpdate.push(noteToUpdate);
       return;
     }
@@ -141,10 +141,7 @@ export async function updateFilesInNotebook(
   console.log("Found the following items to update:", itemsToUpdate.length);
   for (const item of itemsToUpdate) {
     console.log("Item update attempt: ", item);
-    const resp = await props.client.updateNote(
-      item["note-id"],
-      item
-    );
+    const resp = await props.client.updateNote(item["note-id"], item);
     console.log("Item update status code: ", resp.httpCode, resp.body);
   }
 }

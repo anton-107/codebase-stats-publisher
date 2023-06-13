@@ -1,5 +1,5 @@
-import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
 import { Note } from "notes-model/dist/note-model.js";
+import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
 
 import { collectDataFromGitRepo } from "./collect-data.js";
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
