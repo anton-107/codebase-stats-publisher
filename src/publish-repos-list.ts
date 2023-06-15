@@ -6,6 +6,7 @@ import {
 } from "notes-webserver-apiclient/dist/api-client.js";
 
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
+import { publishNotes } from "./publish-notes.js";
 
 function getFoldersInPath(path: string): string[] {
   try {
@@ -62,6 +63,36 @@ function configureFromEnvironment(): PublisherConfiguration {
   };
 }
 
+async function buildNotesForRepo(
+  repoPaths: string[],
+  containingFolder: string,
+  notebookID: string
+): Promise<NoteForm[]> {
+  const repoNotes: NoteForm[] = [];
+  for (const subFolder of repoPaths) {
+    const sourceDir = `${containingFolder}/${subFolder}`;
+    console.log("Reading data from", subFolder);
+
+    const repo = new GitRepository(sourceDir);
+    const commits = await repo.getListOfCommits();
+    const firstCommitDate = new Date(
+      commits[commits.length - 1].commit.author.timestamp * 1000
+    );
+    const lastCommitDate = new Date(commits[0].commit.author.timestamp * 1000);
+
+    const note = {
+      id: "",
+      "note-type": "date-range",
+      "notebook-id": notebookID,
+      "note-content": subFolder,
+      "date-range-start": firstCommitDate.toISOString().split("T")[0],
+      "date-range-end": lastCommitDate.toISOString().split("T")[0],
+    };
+    repoNotes.push(note);
+  }
+  return repoNotes;
+}
+
 async function main() {
   console.log("collecting from folder containing multiple git repositories");
 
@@ -95,52 +126,16 @@ async function main() {
   const repositories = getFoldersInPath(containingFolder);
   console.log(`found ${repositories.length} sub-folders`);
 
-  const packageNotes: NoteForm[] = [];
-  for (const subFolder of repositories) {
-    const sourceDir = `${containingFolder}/${subFolder}`;
-    console.log("Reading data from", subFolder);
-
-    const repo = new GitRepository(sourceDir);
-    const commits = await repo.getListOfCommits();
-    const firstCommitDate = new Date(
-      commits[commits.length - 1].commit.author.timestamp * 1000
-    );
-    const lastCommitDate = new Date(commits[0].commit.author.timestamp * 1000);
-
-    const note = {
-      id: "",
-      "note-type": "date-range",
-      "notebook-id": notebook.id,
-      "note-content": subFolder,
-      "date-range-start": firstCommitDate.toISOString().split("T")[0],
-      "date-range-end": lastCommitDate.toISOString().split("T")[0],
-    };
-    packageNotes.push(note);
-  }
-  // publish data:
-  const publishBatchSize = 3;
-  let i = 0;
-  let notes: NoteForm[] = [];
-  for (const note of packageNotes) {
-    i += 1;
-    notes.push(note);
-    if (notes.length < publishBatchSize) {
-      console.log(
-        `Collected note data on ${note["note-content"]} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${packageNotes.length} processed`
-      );
-      continue;
-    }
-
-    const noteResponse = await client.createNotes(notes);
-    notes = [];
-    console.log(
-      `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${packageNotes.length} complete`
-    );
-  }
-  // publish last batch:
-  const noteResponse = await client.createNotes(notes);
-  console.log(
-    `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${packageNotes.length} complete`
+  // form notes:
+  const repoNotes: NoteForm[] = await buildNotesForRepo(
+    repositories,
+    containingFolder,
+    notebook.id
   );
+
+  await publishNotes({
+    client,
+    notes: repoNotes,
+  });
 }
 main();

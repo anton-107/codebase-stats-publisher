@@ -7,6 +7,7 @@ import {
 
 import { File } from "./collect-data.js";
 import { arraysHaveSameContent } from "./compare-objects.js";
+import { publishNotes } from "./publish-notes.js";
 
 function areEqual(note: Note, file: File): boolean {
   if (
@@ -70,32 +71,10 @@ interface CreateFilesInNotebookProperties {
 export async function createFilesInNotebook(
   props: CreateFilesInNotebookProperties
 ): Promise<void> {
-  // publish data:
-  const publishBatchSize = 3;
-  let i = 0;
-  let notes = [];
-  for (const file of props.files) {
-    i += 1;
-    notes.push(buildNote(props.notebook.id, file));
-    if (notes.length < publishBatchSize) {
-      console.log(
-        `Collected note data on ${file.filePath} to publish in batch of ${publishBatchSize}. Progress: ${i} out of ${props.files.length} processed`
-      );
-      continue;
-    }
-
-    const noteResponse = await props.client.createNotes(notes);
-    notes = [];
-    console.log(
-      `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${props.files.length} complete`
-    );
-  }
-  // publish last batch:
-  const noteResponse = await props.client.createNotes(notes);
-  notes = [];
-  console.log(
-    `Response from note creation : ${noteResponse.httpCode}. Progress: ${i} out of ${props.files.length} complete`
-  );
+  await publishNotes({
+    client: props.client,
+    notes: props.files.map((file) => buildNote(props.notebook.id, file)),
+  });
 }
 
 interface UpdateFilesInNotebookProperties {
