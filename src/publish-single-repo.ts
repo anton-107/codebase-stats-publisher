@@ -76,7 +76,7 @@ async function main() {
   }
 
   // get or create notebook:
-  const notebookName = `${getProjectName(gitRepo)} (gitRepo, v7)`;
+  const notebookName = `${getProjectName(gitRepo)} (gitRepo, v8)`;
   const notebook = await getOrCreateNotebook(client, notebookName);
 
   // list existing notes in that notebook

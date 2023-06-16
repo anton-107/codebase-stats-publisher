@@ -47,15 +47,18 @@ function areEqual(note: Note, file: File): boolean {
   return true;
 }
 
+let manualOrderCount = 1;
+
 function buildNote(notebookID: string, file: File): NoteForm {
   return {
     id: "",
     "note-type": "source-file",
     "notebook-id": notebookID,
     "note-content": file.filePath,
-    "number-of-lines": String(file.numberOfLines),
-    "number-of-changes": String(file.numberOfChanges),
-    "number-of-contributors": String(
+    "note-manual-order": String((manualOrderCount += 1)),
+    "number-of-lines": Number(file.numberOfLines),
+    "number-of-changes": Number(file.numberOfChanges),
+    "number-of-contributors": Number(
       file.contributors ? file.contributors.length : 0
     ),
     contributors: JSON.stringify(file.contributors),
@@ -108,7 +111,6 @@ export async function updateFilesInNotebook(
 
   console.log("Found the following items to create:", itemsToCreate.length);
   for (const item of itemsToCreate) {
-    console.log("Item creation attempt: ", item);
     const resp = await props.client.createNote(
       item["notebook-id"],
       item["note-content"],
@@ -119,7 +121,6 @@ export async function updateFilesInNotebook(
 
   console.log("Found the following items to update:", itemsToUpdate.length);
   for (const item of itemsToUpdate) {
-    console.log("Item update attempt: ", item);
     const resp = await props.client.updateNote(item["note-id"], item);
     console.log("Item update status code: ", resp.httpCode, resp.body);
   }

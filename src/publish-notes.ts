@@ -11,7 +11,7 @@ export async function publishNotes(
   props: PublishNotesProperties
 ): Promise<void> {
   // publish data:
-  const publishBatchSize = 3;
+  const publishBatchSize = 10;
   let i = 0;
   let notes: NoteForm[] = [];
   for (const note of props.notes) {

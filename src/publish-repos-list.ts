@@ -1,4 +1,5 @@
 import { GitRepository } from "codebase-stats-collector/dist/git-reader/git-repository.js";
+import { Commit } from "codebase-stats-collector/dist/interfaces.js";
 import fs from "fs";
 import {
   APIClient,
@@ -7,7 +8,6 @@ import {
 
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
 import { publishNotes } from "./publish-notes.js";
-import { Commit } from "codebase-stats-collector/dist/interfaces.js";
 
 function getFoldersInPath(path: string): string[] {
   try {
