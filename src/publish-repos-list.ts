@@ -7,6 +7,7 @@ import {
 
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
 import { publishNotes } from "./publish-notes.js";
+import { Commit } from "codebase-stats-collector/dist/interfaces.js";
 
 function getFoldersInPath(path: string): string[] {
   try {
@@ -74,7 +75,15 @@ async function buildNotesForRepo(
     console.log("Reading data from", subFolder);
 
     const repo = new GitRepository(sourceDir);
-    const commits = await repo.getListOfCommits();
+    let commits: Commit[] = [];
+    try {
+      commits = await repo.getListOfCommits();
+    } catch (e) {
+      console.warn("Could not read commits for ", sourceDir);
+    }
+    if (commits.length < 1) {
+      continue;
+    }
     const firstCommitDate = new Date(
       commits[commits.length - 1].commit.author.timestamp * 1000
     );
