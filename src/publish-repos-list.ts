@@ -1,11 +1,9 @@
 import { GitRepository } from "codebase-stats-collector/dist/git-reader/git-repository.js";
 import { Commit } from "codebase-stats-collector/dist/interfaces.js";
 import fs from "fs";
-import {
-  APIClient,
-  NoteForm,
-} from "notes-webserver-apiclient/dist/api-client.js";
+import { NoteForm } from "notes-webserver-apiclient/dist/api-client.js";
 
+import { authorizeClient } from "./authorize-client.js";
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
 import { publishNotes } from "./publish-notes.js";
 
@@ -115,18 +113,8 @@ async function main() {
     );
   }
 
-  // authorize client
-  console.log(
-    `Authorizing client against ${notesEndpoint} as user ${notesUser}`
-  );
-
-  const client = new APIClient();
-  const isAuthorized = await client.authorize(notesUser, notesPassword);
-  if (!isAuthorized) {
-    throw Error(
-      `Could not authorize Notes API client. Check that you are using correct login/password pair`
-    );
-  }
+  // authorize client:
+  const client = await authorizeClient(notesEndpoint, notesUser, notesPassword);
 
   // get or create notebook:
   const notebookName = `${containingFolder} (workspace, v1)`;

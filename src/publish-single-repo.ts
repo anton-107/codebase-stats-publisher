@@ -1,6 +1,6 @@
 import { Note } from "notes-model/dist/note-model.js";
-import { APIClient } from "notes-webserver-apiclient/dist/api-client.js";
 
+import { authorizeClient } from "./authorize-client.js";
 import { collectDataFromGitRepo } from "./collect-data.js";
 import { getOrCreateNotebook } from "./get-or-create-notebook.js";
 import {
@@ -62,18 +62,8 @@ async function main() {
   console.log(`Collecting data from git repo: ${gitRepo}`);
   const files = await collectDataFromGitRepo(gitRepo);
 
-  // authorize client
-  console.log(
-    `Authorizing client against ${notesEndpoint} as user ${notesUser}`
-  );
-
-  const client = new APIClient();
-  const isAuthorized = await client.authorize(notesUser, notesPassword);
-  if (!isAuthorized) {
-    throw Error(
-      `Could not authorize Notes API client. Check that you are using correct login/password pair`
-    );
-  }
+  // authorize client:
+  const client = await authorizeClient(notesEndpoint, notesUser, notesPassword);
 
   // get or create notebook:
   const notebookName = `${getProjectName(gitRepo)} (gitRepo, v8)`;
